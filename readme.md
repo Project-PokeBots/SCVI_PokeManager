@@ -8,8 +8,8 @@ A pokémon dumper and injector for Scarlet and Violet.
 4. `Dump` dumps the pokémon in ek9 format. `Inject` injects ek9 named "inject".
 
 ## To do
-[x] Update for 1.0.1
-[ ] Configure slots that way it is not limited to Box 1 Slot 1
+- [x] Update for 1.0.1
+- [ ] Configure slots that way it is not limited to Box 1 Slot 1
 
 ## Credits
 - [Manu](https://github.com/Manu098vm): Providing correct offset and testing
