@@ -9,6 +9,7 @@ A pokémon dumper and injector for Scarlet and Violet.
 
 ## To do
 - [x] Update for 1.0.1
+- [ ] PK9 encyption
 - [ ] Configure slots that way it is not limited to Box 1 Slot 1
 
 ## Credits
