@@ -2,6 +2,7 @@ import sys, socket, random, string, binascii, re
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QAction, QLineEdit, QMessageBox, QComboBox, QLabel
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtCore import pyqtSlot
+from px8parse import PX8
 
 
 class App(QMainWindow):
@@ -67,9 +68,9 @@ class App(QMainWindow):
             name = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
             f = open(f"{name}.ek9", "wb+")
             f.write(binascii.unhexlify(pokemon))
+            alert.setWindowTitle(f"Successfully dumped to {name}.ek9")
+            alert.setText(PX8(buf = f.read()))
             f.close()
-            alert.setWindowTitle("Successfully dumped")
-            alert.setText(f"Pokémon dumped from slot {self.slot} to {name}.ek9!")
         except:
             alert.setWindowTitle("[!] Dumped failed")
             alert.setText(f"Failed to dump pokémon!")
