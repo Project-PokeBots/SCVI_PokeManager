@@ -62,25 +62,28 @@ class App(QMainWindow):
     @pyqtSlot()
     def dump_clicked(self):
         alert = QMessageBox()
-        try:
-            self.switch.sendall(f"pointerPeek 344 {self.offset}\r\n".encode())
-            pokemon = (self.switch.recv(689))[0:-1]
-            name = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
-            f = open(f"{name}.ek9", "wb+")
-            f.write(binascii.unhexlify(pokemon))
-            alert.setWindowTitle(f"Successfully dumped to {name}.ek9")
-            alert.setText(PX8(buf = f.read()))
-            f.close()
-        except:
-            alert.setWindowTitle("[!] Dumped failed")
-            alert.setText(f"Failed to dump pokémon!")
+            #address = 0x42FD510 0xA90 0x9B0 0x0 + ((1- 1) * 30 * 344) + ((self.slot - 1) * 344)
+        self.switch.sendall(f"pointerPeek 344 {self.offset}\r\n".encode())
+        pokemon = (self.switch.recv(689))[0:-1]
+        name = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
+        with open(f"{name}.ek9", "wb+") as writer:
+            writer.write(binascii.unhexlify(pokemon))
+        alert.setWindowTitle(f"Successfully dumped to {name}.ek9")
+        with open(f"{name}.ek9", "rb") as reader:
+            alert.setText(str(PX8(buf = reader.read())))
+
         alert.exec()
 
     def inject_clicked(self):
         alert = QMessageBox()
-        injector = open("inject.ek9", "rb")
-        pokemon = binascii.hexlify(injector.read(344), "utf-8")
-        self.switch.sendall(f"pointerPoke 0x{pokemon} {self.offset}\r\n")
+        try:
+            with open("inject.ek9", "rb") as f:
+                pk = f.read().hex()
+        except:
+            alert.setWindowTitle("[!] No file")
+            alert.setText('No file named "inject.ek9" found!')
+            return alert.exec()
+        self.switch.sendall(f"pointerPoke 0x{pk} {self.offset}\r\n".encode())
         alert.setWindowTitle("Successfully injected")
         alert.setText(f"Pokémon injected into slot {self.slot} {self.SwitchIP}!")
 
