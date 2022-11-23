@@ -53,11 +53,21 @@ def main_window_setup():
                     with dpg.group(horizontal=True):
                         dpg.add_button(label="-", callback=lambda: dpg.set_value("posInBox", dpg.get_value("posInBox") - 1 if dpg.get_value("posInBox") > 1 else 1))
                         dpg.add_drag_int(label="##posInBox", width=100, clamped=True, min_value=1, max_value=30, default_value=1, tag="posInBox")
-                        dpg.add_button(label="+", callback=lambda: dpg.set_value("posInBox", dpg.get_value("posInBox") + 1 if dpg.get_value("posInBox") < 30 else 30))
+                        dpg.add_button(label="+" ,callback=lambda: dpg.set_value("posInBox", dpg.get_value("posInBox") + 1 if dpg.get_value("posInBox") < 30 else 30))
                         dpg.add_text(default_value="Slot")
 
                     dpg.add_button(label="Dump", width=-1, height=30, callback=backend_dump)
-                    dpg.add_button(label="Inject", width=-1, height=30, callback=backend_inject)
+                    dpg.add_button(label="Inject", width=-1, height=30, callback=lambda: dpg.show_item("file_dialog_id"))
+
+    with dpg.file_dialog(directory_selector=False, show=False, callback=backend_inject, cancel_callback=None, id="file_dialog_id", width=724, height=313, modal=True) as filepicker:
+        try:
+            dpg.set_item_pos(filepicker, [0, 0])
+        except:
+            pass
+        dpg.add_file_extension("All pkx {.ek8,.pk8,.eb8,.pb8,.ek9,.pk9}")
+        dpg.add_file_extension("SWSH (ek8/pk8){.ek8,.pk8}")
+        dpg.add_file_extension("BDSP (eb8/pb8){.eb8,.pb8}")
+        dpg.add_file_extension("SCVI (ek9/pk9){.ek9,.pk9}")
 
     dpg.bind_theme(global_theme)
     dpg.setup_dearpygui()
