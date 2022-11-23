@@ -12,13 +12,16 @@ class SocketConnection():
         self.port = port
     
     def connect(self):
+        if self.ip == None or self.port == None:
+            return f"No IP or Port set."
+            
         if not self.sock:
             try:
                 self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.sock.connect((self.ip, int(self.port)))
             except socket.error: 
-                return f"[!] Unable to connect to {switch_ip}:{switch_port}."
-        return None
+                return f"Unable to connect to {self.ip}:{self.port}."
+        return "Connected."
 
     def send(self, content):
         if not self.sock:
@@ -27,7 +30,7 @@ class SocketConnection():
             content += "\r\n"
             self.sock.sendall(content.encode())
         except Exception as e:
-            return f"[!] Unable to send commands: {e}"
+            return f"Unable to send commands: {e}"
         return None
 
     def recv(self, content):
@@ -38,5 +41,5 @@ class SocketConnection():
             self.sock.sendall(content.encode())
             return self.sock.recv(689)[:-1]
         except Exception as e:
-            return f"[!] Unable to send commands: {e}"
+            return f"Unable to send commands: {e}"
         return None
