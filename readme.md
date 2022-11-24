@@ -14,3 +14,4 @@ A pokémon dumper and injector for Scarlet and Violet.
 
 ## Credits
 - [Manu](https://github.com/Manu098vm): Providing correct offset and testing
+- [Slluxx](https://github.com/Slluxx): GUI rewrite
