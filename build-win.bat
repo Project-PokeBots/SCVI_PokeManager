@@ -12,3 +12,6 @@ pyinstaller ^
     --icon "assets\logo.ico" ^
     --collect-all px8parse ^
     src\main.py
+
+REM For those who execute the script without commandline
+pause
