@@ -1,5 +1,5 @@
 import asyncio, threading
-import re, random, string, traceback, datetime
+import re, pathlib, traceback, datetime, sys
 import dearpygui.dearpygui as dpg
 from px8parse import *
 from socketSwitch import *
@@ -11,6 +11,13 @@ pk_config = {
     "box_array": 0x158,
     "pk_size": 344
 }
+
+def assetLoader(relative_filePath):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = pathlib.Path(__file__).parent.absolute().parent.absolute()
+    return pathlib.Path(base_path).joinpath("assets").joinpath(relative_filePath).absolute()
 
 def log2window(message, window="logging_window"):
     now = datetime.datetime.now().strftime("%H:%M:%S")
