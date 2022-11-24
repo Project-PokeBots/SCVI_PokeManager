@@ -72,8 +72,8 @@ async def backend_dump(sender, app_data, user_data):
         log2window(f"Unable to dump Pokemon.")
         return False
 
-    filename = f"{boxNumber}_{positionInBox}_{pkmName.lower()}.pk8"
-    with open(f"{filename}.ek9", "wb+") as writer:
+    filename = f"{boxNumber}_{positionInBox}_{pkmName.lower()}.ek9"
+    with open(filename, "wb+") as writer:
         try:
             writer.write(bytes.fromhex(pokemon.decode("utf-8")))
             log2window(f"Dumped '{pkmName}' to {filename}")
@@ -94,3 +94,4 @@ async def backend_inject(sender, app_data, user_data):
     except Exception:
         log2window(f"Unable to open file")
         return False
+    log2window(f"Injected {app_data['file_name']}")
