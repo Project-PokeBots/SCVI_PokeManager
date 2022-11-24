@@ -20,7 +20,7 @@ with dpg.theme() as disabled_theme:
         dpg.add_theme_color(dpg.mvThemeCol_Text, (100, 100, 100), category=dpg.mvThemeCat_Core)
 
 with dpg.font_registry() as main_font_registry:
-    fontPath = pathlib.Path(__file__).parent.absolute().parent.absolute() / "assets" / "Roboto-Regular.ttf"
+    fontPath = assetLoader("Roboto-Regular.ttf")
     regular_font = dpg.add_font(fontPath, 14)
 
 
@@ -69,6 +69,9 @@ def main_window_setup():
 
     dpg.bind_theme(global_theme)
     dpg.bind_font(regular_font)
+    dpg.set_viewport_small_icon(assetLoader("logo.ico"))
+    dpg.set_viewport_large_icon(assetLoader("logo.ico"))
+
     dpg.setup_dearpygui()
     dpg.show_viewport()
     dpg.set_primary_window(window=main_window, value=True)
