@@ -1,5 +1,6 @@
 from backend import *
 import dearpygui.dearpygui as dpg
+import pathlib
 
 dpg.create_context()
 
@@ -18,6 +19,11 @@ with dpg.theme() as disabled_theme:
     with dpg.theme_component(dpg.mvAll):
         dpg.add_theme_color(dpg.mvThemeCol_Text, (100, 100, 100), category=dpg.mvThemeCat_Core)
 
+with dpg.font_registry() as main_font_registry:
+    fontPath = pathlib.Path(__file__).parent.absolute().parent.absolute() / "assets" / "Roboto-Regular.ttf"
+    regular_font = dpg.add_font(fontPath, 14)
+
+
 
 def main_window_setup():
     dpg.create_viewport(title="SCVI PokeManager", x_pos=0, y_pos=0, width=750, height=373, resizable=False)
@@ -29,9 +35,9 @@ def main_window_setup():
                 with dpg.child_window(width=500, height=325, tag="logging_window") as log_window:
                     dpg.add_text("Logging Initialized\n")
 
-            with dpg.child_window(autosize_x=True, height=325):
+            with dpg.child_window(autosize_x=True, height=325): # complete right side
                 with dpg.group():
-                    with dpg.child_window(height=203):
+                    with dpg.child_window(height=201): # top right side, height=150
                         dpg.add_spacer(height=5)
                         dpg.add_text(default_value=" Settings")
                         dpg.add_spacer(height=5)
@@ -44,17 +50,9 @@ def main_window_setup():
                     dpg.add_separator()
                     dpg.add_spacer()
 
-                    with dpg.group(horizontal=True):
-                        dpg.add_button(label="-", callback=lambda: dpg.set_value("boxnumber", dpg.get_value("boxnumber") - 1 if dpg.get_value("boxnumber") > 1 else 1))
-                        dpg.add_drag_int(label="##boxnumber", width=100, clamped=True, min_value=1, max_value=31, default_value=1, tag="boxnumber")
-                        dpg.add_button(label="+", callback=lambda: dpg.set_value("boxnumber", dpg.get_value("boxnumber") + 1 if dpg.get_value("boxnumber") < 31 else 31))
-                        dpg.add_text(default_value="Box")
-
-                    with dpg.group(horizontal=True):
-                        dpg.add_button(label="-", callback=lambda: dpg.set_value("posInBox", dpg.get_value("posInBox") - 1 if dpg.get_value("posInBox") > 1 else 1))
-                        dpg.add_drag_int(label="##posInBox", width=100, clamped=True, min_value=1, max_value=30, default_value=1, tag="posInBox")
-                        dpg.add_button(label="+" ,callback=lambda: dpg.set_value("posInBox", dpg.get_value("posInBox") + 1 if dpg.get_value("posInBox") < 30 else 30))
-                        dpg.add_text(default_value="Slot")
+                    with dpg.group():
+                        dpg.add_input_int(label="Box", default_value=1, min_value=1, max_value=31, max_clamped=True, min_clamped=True, tag="boxnumber")
+                        dpg.add_input_int(label="Slot", default_value=1, min_value=1, max_value=30, max_clamped=True, min_clamped=True, tag="posInBox")
 
                     dpg.add_button(label="Dump", width=-1, height=30, callback=backend_dump)
                     dpg.add_button(label="Inject", width=-1, height=30, callback=lambda: dpg.show_item("file_dialog_id"))
@@ -70,6 +68,7 @@ def main_window_setup():
         dpg.add_file_extension("SCVI (ek9/pk9){.ek9,.pk9}")
 
     dpg.bind_theme(global_theme)
+    dpg.bind_font(regular_font)
     dpg.setup_dearpygui()
     dpg.show_viewport()
     dpg.set_primary_window(window=main_window, value=True)
