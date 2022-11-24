@@ -1,4 +1,7 @@
 @echo off
+
+cd /D "%~dp0"
+
 pip install pyinstaller
 
 pyinstaller ^
