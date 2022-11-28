@@ -1,2 +1,2 @@
-PyQt5==5.15.7
+dearpygui==1.8.0
 git+https://github.com/Project-PokeBots/px8parse

@@ -1,115 +1,82 @@
-import sys, socket, random, string, binascii, re
-from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QAction, QLineEdit, QMessageBox, QComboBox, QLabel
-from PyQt5.QtGui import QIcon, QFont
-from PyQt5.QtCore import pyqtSlot
-from px8parse import PX8
+from backend import *
+import dearpygui.dearpygui as dpg
+import pathlib
+
+dpg.create_context()
+
+with dpg.theme() as global_theme:
+    with dpg.theme_component(dpg.mvAll):
+        dpg.add_theme_style(dpg.mvStyleVar_WindowPadding, 4, 4, category=dpg.mvThemeCat_Core)
+        dpg.add_theme_style(dpg.mvStyleVar_ItemSpacing, 4, 4, category=dpg.mvThemeCat_Core)
+        dpg.add_theme_style(dpg.mvStyleVar_ChildRounding, 4, 4, category=dpg.mvThemeCat_Core)
+        dpg.add_theme_style(dpg.mvStyleVar_FrameRounding, 4, 4, category=dpg.mvThemeCat_Core)
+        dpg.add_theme_style(dpg.mvStyleVar_ChildBorderSize, 0, category=dpg.mvThemeCat_Core)
+        dpg.add_theme_color(dpg.mvThemeCol_WindowBg, (33, 33, 33), category=dpg.mvThemeCat_Core)
+        dpg.add_theme_color(dpg.mvThemeCol_MenuBarBg, (48, 48, 48), category=dpg.mvThemeCat_Core)
+        dpg.add_theme_color(dpg.mvThemeCol_Text, (200, 200, 200), category=dpg.mvThemeCat_Core)
+
+with dpg.theme() as disabled_theme:
+    with dpg.theme_component(dpg.mvAll):
+        dpg.add_theme_color(dpg.mvThemeCol_Text, (100, 100, 100), category=dpg.mvThemeCat_Core)
+
+with dpg.font_registry() as main_font_registry:
+    fontPath = assetLoader("Roboto-Regular.ttf")
+    regular_font = dpg.add_font(fontPath, 14)
 
 
-class App(QMainWindow):
-    def __init__(self):
-        super().__init__()
-        self.title = "SCVI_PokéManager"
-        self.width = 300
-        self.height = 50
-        self.font = "Arial"
-        self.font_size = 12
-        self.SwitchIP = None
-        self.slot = 1
-        self.offset = "0x42FD510 0xA90 0x9B0 0x0"
-        self.initUI()
 
-    def initUI(self):
-        self.setWindowTitle(self.title)
-        self.setMinimumSize(self.width, self.height)
-        self.setFont(QFont(self.font, self.font_size))
+def main_window_setup():
+    dpg.create_viewport(title="SCVI PokeManager", x_pos=0, y_pos=0, width=750, height=373, resizable=False)
 
-        # Create buttons for dump, inject, and IP submit
-        self.dump = QPushButton("Dump", self)
-        self.dump.clicked.connect(self.dump_clicked)
-        self.dump.resize(100, 50)
-        self.dump.move(0, 0)
+    with dpg.window(pos=[0, 0], autosize=True, no_collapse=True, no_resize=True, no_close=True, no_move=True, no_title_bar=True) as main_window:
 
-        self.inject = QPushButton("Inject", self)
-        self.inject.clicked.connect(self.inject_clicked)
-        self.inject.resize(100, 50)
-        self.inject.move(100, 0)
+        with dpg.group(horizontal=True):
+            with dpg.group():
+                with dpg.child_window(width=500, height=325, tag="logging_window") as log_window:
+                    dpg.add_text("Logging Initialized\n")
 
-        self.submit = QPushButton("Connect", self)
-        self.submit.clicked.connect(self.on_ip)
-        self.submit.resize(100, 60)
-        self.submit.move(200, 50)
+            with dpg.child_window(autosize_x=True, height=325): # complete right side
+                with dpg.group():
+                    with dpg.child_window(height=201): # top right side, height=150
+                        dpg.add_spacer(height=5)
+                        dpg.add_text(default_value=" Settings")
+                        dpg.add_spacer(height=5)
+                        dpg.add_separator()
+                        dpg.add_spacer(height=5)
+                        dpg.add_input_text(label="Switch IP", width=130, default_value="192.168.1.10", tag="switch_ip")
+                        dpg.add_input_text(label="Switch Port", width=130, default_value="6000", tag="switch_port")
+                        dpg.add_button(label="Connect", width=-1, height=30, callback=backend_connect)
 
-        # Create dropdown to select slot location
-        self.combo = QComboBox(self)
-        self.combo.addItems([str(e) for e in range(1, 31)])
-        self.combo.currentTextChanged.connect(self.combo_clicked)
-        self.combo.resize(100, 50)
-        self.combo.move(200, 0)
+                    dpg.add_separator()
+                    dpg.add_spacer()
 
-        # Create label
-        self.label = QLabel(self)
-        self.label.setText("Switch IP:")
-        self.label.resize(100, 50)
-        self.label.move(0, 50)
+                    with dpg.group():
+                        dpg.add_input_int(label="Box", default_value=1, min_value=1, max_value=31, max_clamped=True, min_clamped=True, tag="boxnumber")
+                        dpg.add_input_int(label="Slot", default_value=1, min_value=1, max_value=30, max_clamped=True, min_clamped=True, tag="posInBox")
 
-        # Create text input boxes for IP
-        self.inp = QLineEdit(self)
-        self.inp.resize(100, 60)
-        self.inp.move(100, 50)
+                    dpg.add_button(label="Dump", width=-1, height=30, callback=backend_dump)
+                    dpg.add_button(label="Inject", width=-1, height=30, callback=lambda: dpg.show_item("file_dialog_id"))
 
-        self.show()
-
-    @pyqtSlot()
-    def dump_clicked(self):
-        alert = QMessageBox()
-            #address = 0x42FD510 0xA90 0x9B0 0x0 + ((1- 1) * 30 * 344) + ((self.slot - 1) * 344)
-        self.switch.sendall(f"pointerPeek 344 {self.offset}\r\n".encode())
-        pokemon = (self.switch.recv(689))[0:-1]
-        name = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
-        with open(f"{name}.ek9", "wb+") as writer:
-            writer.write(binascii.unhexlify(pokemon))
-        alert.setWindowTitle(f"Successfully dumped to {name}.ek9")
-        with open(f"{name}.ek9", "rb") as reader:
-            alert.setText(str(PX8(buf = reader.read())))
-
-        alert.exec()
-
-    def inject_clicked(self):
-        alert = QMessageBox()
+    with dpg.file_dialog(directory_selector=False, show=False, callback=backend_inject, cancel_callback=None, id="file_dialog_id", width=724, height=313, modal=True) as filepicker:
         try:
-            with open("inject.ek9", "rb") as f:
-                pk = f.read().hex()
+            dpg.set_item_pos(filepicker, [0, 0])
         except:
-            alert.setWindowTitle("[!] No file")
-            alert.setText('No file named "inject.ek9" found!')
-            return alert.exec()
-        self.switch.sendall(f"pointerPoke 0x{pk} {self.offset}\r\n".encode())
-        alert.setWindowTitle("Successfully injected")
-        alert.setText(f"Pokémon injected into slot {self.slot} {self.SwitchIP}!")
+            pass
+        dpg.add_file_extension("All pkx {.ek8,.pk8,.eb8,.pb8,.ek9,.pk9}")
+        dpg.add_file_extension("SWSH (ek8/pk8){.ek8,.pk8}")
+        dpg.add_file_extension("BDSP (eb8/pb8){.eb8,.pb8}")
+        dpg.add_file_extension("SCVI (ek9/pk9){.ek9,.pk9}")
 
-        alert.exec()
+    dpg.bind_theme(global_theme)
+    dpg.bind_font(regular_font)
+    dpg.set_viewport_small_icon(assetLoader("logo.ico"))
+    dpg.set_viewport_large_icon(assetLoader("logo.ico"))
 
-    def combo_clicked(self, text):
-        global slot
-        slot = int(text)
+    dpg.setup_dearpygui()
+    dpg.show_viewport()
+    dpg.set_primary_window(window=main_window, value=True)
+    dpg.start_dearpygui()
+    dpg.destroy_context()
 
-    def on_ip(self):
-        text = self.inp.text()
-        if not re.match(r"^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$", text):
-            alert = QMessageBox()
-            alert.setWindowTitle("[!] Error")
-            alert.setText(f"Invalid IP set!")
-            alert.exec()
-        else:
-            self.SwitchIP = str(text)
-            alert = QMessageBox()
-            alert.setWindowTitle("Switch IP")
-            alert.setText(f"Switch IP set to {self.SwitchIP}!")
-            self.switch = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.switch.connect((self.SwitchIP, 6000))
-            alert.exec()
 
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    ex = App()
-    sys.exit(app.exec_())
+main_window_setup()
