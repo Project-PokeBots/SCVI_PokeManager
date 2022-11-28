@@ -39,7 +39,14 @@ class SocketConnection():
         try:
             content += "\r\n"
             self.sock.sendall(content.encode())
-            return self.sock.recv(689)[:-1]
+            return self.sock.recv(689)[:-1].decode("utf-8")
+            
         except Exception as e:
             return f"Unable to send commands: {e}"
         return None
+
+    def get_static(self, box, pos):
+        if not self.sock:
+            self.connect()
+        main_heap = self.recv("pointerRelative 0x42FD510 0xA90 0x9B0 0x0")
+        return hex(int(main_heap, 16) + ((box - 1) * 30 * int(0x158)) + ((pos - 1) * int(0x158)))
