@@ -6,11 +6,6 @@ from socketSwitch import *
 
 socketSwitch = SocketConnection()
 
-pk_config = {
-    "offset": "0x42FD510 0xA90 0x9B0 0x0",
-    "box_array": 0x158,
-    "pk_size": 344
-}
 
 def assetLoader(relative_filePath):
     try:
@@ -66,23 +61,24 @@ async def backend_connect(sender, app_data, user_data):
 
 @dpg_callback(sender=True, app_data=True, user_data=True)
 async def backend_dump(sender, app_data, user_data):
-    boxNumber = dpg.get_value('boxnumber')
-    positionInBox = dpg.get_value('posInBox')
+    box = dpg.get_value('boxnumber')
+    pos = dpg.get_value('posInBox')
 
-    log2window(f"Dumping box {boxNumber} position {positionInBox}...")
-    
-    pokemon = socketSwitch.recv(f"pointerPeek 344 {pk_config['offset']}")
-    pkmDataStr = str(PX8(buf = bytes.fromhex(pokemon.decode("utf-8"))))
+    log2window(f"Dumping box {box} position {pos}...")
+
+    address = socketSwitch.get_static(box, pos)
+    pokemon = socketSwitch.recv(f"peek {address} 344")
+    pkmDataStr = str(PX8(buf = bytes.fromhex(pokemon)))
     pkmName = pkmDataStr.split("\n")[0].split(" ")[0]
 
     if not pkmName or len(pkmName)<2:
         log2window(f"Unable to dump Pokemon.")
         return False
 
-    filename = f"{boxNumber}_{positionInBox}_{pkmName.lower()}.ek9"
+    filename = f"{box}_{pos}_{pkmName.lower()}.ek9"
     with open(filename, "wb+") as writer:
         try:
-            writer.write(bytes.fromhex(pokemon.decode("utf-8")))
+            writer.write(bytes.fromhex(pokemon))
             log2window(f"Dumped '{pkmName}' to {filename}")
         except:
             log2window(f"Unable to dump pokemon.")
@@ -93,11 +89,13 @@ async def backend_inject(sender, app_data, user_data):
     box = dpg.get_value('boxnumber')
     pos = dpg.get_value('posInBox')
 
+    address = socketSwitch.get_static(box, pos)
+
     try:
         with open(app_data["file_name"], "rb") as f:
             pk = f.read().hex()
             log2window(f"Injecting {app_data['file_name']} into box {box} position {pos}...")
-            pokemon = socketSwitch.send(f"pointerPoke 0x{pk} {pk_config['offset']}")
+            pokemon = socketSwitch.send(f"poke {address} 0x{pk}")
     except Exception:
         log2window(f"Unable to open file")
         return False
