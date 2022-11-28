@@ -9,10 +9,10 @@ A pokémon dumper and injector for Scarlet and Violet.
 3. Enter your Switch IP in the GUI and click `Connect`
 4. Press `Dump` or `Inject` to manage pokémon in ek9 format.
 
-## To do
-- [x] Update for 1.0.1
-- [ ] PK9 encyption
+## Roadmap
+- [x] Update for SCVI game version 1.0.1
 - [x] Configure slots that way it is not limited to Box 1 Slot 1
+- [ ] PK9 encyption
 
 ## Credits
 - [Manu](https://github.com/Manu098vm): Providing correct offset
