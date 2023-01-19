@@ -48,5 +48,5 @@ class SocketConnection():
     def get_static(self, box, pos):
         if not self.sock:
             self.connect()
-        main_heap = self.recv("pointerRelative 0x42FD510 0xA90 0x9B0 0x0")
+        main_heap = self.recv("pointerRelative 0x43A7778 0xA90 0x9B0 0x0")
         return hex(int(main_heap, 16) + ((box - 1) * 30 * int(0x158)) + ((pos - 1) * int(0x158)))
